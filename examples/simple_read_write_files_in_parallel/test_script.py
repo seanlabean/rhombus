@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../')
+sys.path.append('../../')
 from mpi_utilities import *
 from time import time
 
@@ -19,7 +19,7 @@ rank, size, comm = initialize_mpi()
 file_dir = './files/'
 generic_file_name = 'file'
 file_names, start, end = gather_files(generic_file_name, file_dir,
-                                      suffix='.txt', start=None, end=None, debug=True)
+                                      suffix='.txt', start=None, end=None, debug=False)
 
 args = [rank]
 kwargs={}
@@ -28,4 +28,4 @@ chunk_size=1
 comm.Barrier()
 perform_task_in_parallel(read_write_file, args, kwargs,
                          file_names, chunk_size, rank, size, comm,
-                         root=0, debug=True)
+                         root=0, debug=False)
