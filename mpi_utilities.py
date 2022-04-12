@@ -43,7 +43,7 @@ def gather_files(generic_file_name, file_dir, suffix='',
         print(files)
 
     # FIRST: Remove forced plot files from list if it is there.
-    if ('forced' in files[0]): files = files[1:]
+    #if ('forced' in files[0]): files = files[1:] - not needed for generic testing SCL 04/12/22
     
     if (start==None):
         start = 0
@@ -63,10 +63,10 @@ def gather_files(generic_file_name, file_dir, suffix='',
         
     files = files[start:end]
     
-    if (debug):
-        print('start=', start)
-        print('end=', end)
-        print(files)
+    #if (debug):
+        #print('start=', start)
+        #print('end=', end)
+        #print(files)
 
     return files, start, end
 
