@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Generic text files
-*.txt
+simple_example/files/
