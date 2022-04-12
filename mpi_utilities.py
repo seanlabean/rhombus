@@ -35,12 +35,12 @@ def gather_files(generic_file_name, file_dir, suffix='',
     files = glob(joined_file_name) # Get the files.
     files.sort() # Sort them!
     if (debug):
-        print generic_file_name
-        print file_dir
-        print joined_file_name
-        print 'start=', start
-        print 'end=', end
-        print files
+        print(generic_file_name)
+        print(file_dir)
+        print(joined_file_name)
+        print('start=', start)
+        print('end=', end)
+        print(files)
 
     # FIRST: Remove forced plot files from list if it is there.
     if ('forced' in files[0]): files = files[1:]
@@ -64,9 +64,9 @@ def gather_files(generic_file_name, file_dir, suffix='',
     files = files[start:end]
     
     if (debug):
-        print 'start=', start
-        print 'end=', end
-        print files
+        print('start=', start)
+        print('end=', end)
+        print(files)
 
     return files, start, end
 
@@ -89,8 +89,8 @@ def initialize_mpi(debug=False):
     size = comm.Get_size()
     rank = comm.Get_rank()
     
-    if (debug): print "Size =", size
-    if (debug): print "Rank =", rank
+    if (debug): print("Size =", size)
+    if (debug): print("Rank =", rank)
 
     return rank, size, comm
 
@@ -108,13 +108,13 @@ def wait_for_message(recv_buff, status, comm, debug=False):
     # for a request for more work
     # from a worker.
 
-    if (debug): print "Root in wait_for_message"
+    if (debug): print("Root in wait_for_message")
     comm.Recv(recv_buff, source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
     source = status.Get_source()
     tag    = status.Get_tag()
     if (debug):
-        print "source=", source
-        print "tag=", tag
+        print("source=", source)
+        print("tag=", tag)
 
     return recv_buff, source, tag
 
@@ -171,7 +171,7 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
 
     pre = "Proc", rank
 
-    if (debug): print pre, "Entering perform_task_in_parallel."
+    if (debug): print(pre, "Entering perform_task_in_parallel.")
     
     # Keep a status object around for async comms
     status = MPI.Status()
@@ -216,18 +216,18 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
             if ( int((float(counter) 
                  / float(number_of_work_units)
                  / float(chunk_size))*100.) >= frac_done):
-                print "Progress at {:.0f} %".format(frac_done)
+                print("Progress at {:.0f} %".format(frac_done))
                 frac_done += 3.
 
             # Wait for someone to say they want some work.
-            if (debug): print pre, "Waiting for message asking for work."
+            if (debug): print(pre, "Waiting for message asking for work.")
             recv_buff, source, tag = wait_for_message(recv_buff, status,
                                                       comm, debug=debug)
-            if (debug): print pre, "recieved", recv_buff, "from", source
+            if (debug): print(pre, "recieved", recv_buff, "from", source)
             
             if (not_done):
                 # Get a chunk of data
-                if (debug): print pre, "Getting data chunk."
+                if (debug): print(pre, "Getting data chunk.")
                 data_chunk, new_index = \
                     get_chunk(all_data, current_index, chunk_size)
             
@@ -238,15 +238,15 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
                 comm.Send([send_me_work, 1, MPI.INT],
                            dest=source, tag=current_index)
                 # Send the work
-                if (debug): print pre, "Sending", source, "work =", data_chunk
+                if (debug): print(pre, "Sending", source, "work =", data_chunk)
                 send_data(data_chunk, source, comm, tag=current_index)
                 procs_status[source-1] = working
             else:
                 # Tell this proc we're done.
-                if (debug): print pre, "Telling", source, "we're done."
+                if (debug): print(pre, "Telling", source, "we're done.")
                 comm.Send([everyone_all_done,  MPI.INT], dest=source, tag=done_tag)
                 procs_status[source-1] = done
-                if (debug): print pre, "proc_status array =", procs_status
+                if (debug): print(pre, "proc_status array =", procs_status)
             
             current_index = new_index
             if (current_index > last_data_index):
@@ -254,53 +254,53 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
 
             counter += 1
 
-            if (debug): print "Counter = ", counter
+            if (debug): print("Counter = ", counter)
 
     else: # I'm a worker bee.
 
         while not_done:
 
             # Ask the root for more work.
-            if (debug): print pre, "Asking root for work."
+            if (debug): print(pre, "Asking root for work.")
             comm.Send([send_me_work, 1, MPI.INT], dest=root, tag=0)
             # Wait for a reply, then check the reply size
             # to determine if this is work or just a message
             # tell us we are all done.
             if (debug):
-                print pre, "Getting message about if we are done."
+                print(pre, "Getting message about if we are done.")
                 # For serious debugging, uncomment these lines.
                 comm.Probe(source=MPI.ANY_SOURCE,tag=MPI.ANY_TAG, status=status)
-                print pre, "source = ", status.Get_source()
-                print pre, "tag    = ", status.Get_tag()
-                print pre, "count  = ", status.Get_elements(MPI.INT)
-                print pre, "size   = ", status.Get_count()
+                print(pre, "source = ", status.Get_source())
+                print(pre, "tag    = ", status.Get_tag())
+                print(pre, "count  = ", status.Get_elements(MPI.INT))
+                print(pre, "size   = ", status.Get_count())
             comm.Recv([recv_buff, MPI.INT], source=root,
                        tag=MPI.ANY_TAG, status=status)
             tag   = status.Get_tag()
-            if (debug): print pre, "Message tag =", tag
+            if (debug): print(pre, "Message tag =", tag)
             if (recv_buff != done_tag):
                 # Its a data object, just use a regular recieve.
-                if (debug): print pre, "Getting data from root."
+                if (debug): print(pre, "Getting data from root.")
                 local_data = comm.recv(source=root, tag=tag, status=status)
-                if (debug): print pre, "Processing data from root."
+                if (debug): print(pre, "Processing data from root.")
                 if (needs_current_index_arg(function)):
                     kwargs['current_index']=tag
-                if (debug): print "kwargs=", kwargs
+                if (debug): print("kwargs=", kwargs)
                 function(local_data, *args, **kwargs)
             else:
                 # Otherwise its a simple one count array message. Recieve that.
-                if (debug): print pre, "Got non-data message from root."
+                if (debug): print(pre, "Got non-data message from root.")
                 # Not used now that we explicitly communicate a message
                 # about work status before we send the work chunk.
                 #comm.Recv(recv_buff, source=root, tag=MPI.ANY_TAG, status=status)
-                if (debug): print pre, "Root sent", recv_buff
+                if (debug): print(pre, "Root sent", recv_buff)
                 if (recv_buff == everyone_all_done):
                     not_done = False
                     if (debug):
-                        print pre, "Hears from root we're all done."
+                        print(pre, "Hears from root we're all done.")
 
     
-    print pre, "Exiting from perform_task_in_parallel"
+    print(pre, "Exiting from perform_task_in_parallel")
     return
 
 # The following can be thought of as MPI post-processing methods.
@@ -331,10 +331,10 @@ def mpi_reduce_np_array_in_place(array, comm,
     """
 
     recv_array = np.zeros_like(array)
-    if (debug): print pre, 'before reduce, array=',array
+    if (debug): print(pre, 'before reduce, array=',array)
     comm.Reduce(array, recv_array, root=root, op=oper)
-    if (debug): print pre, 'after reduce, array=', array
-    if (debug): print pre, 'after reduce, recv_array=', recv_array
+    if (debug): print(pre, 'after reduce, array=', array)
+    if (debug): print(pre, 'after reduce, recv_array=', recv_array)
     array = recv_array.copy()
     del(recv_array)
     return array
