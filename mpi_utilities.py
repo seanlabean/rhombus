@@ -213,12 +213,15 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
         while (np.array(procs_status != done).any()):
             
             # Progress tracker (at least on the root processor).
-            if ( int((float(counter) 
-                 / float(number_of_work_units)
-                 / float(chunk_size))*100.) >= frac_done):
-                print("Progress at {:.0f} %".format(frac_done))
-                frac_done += 3.
-
+            #if ( int((float(counter) 
+            #     / float(number_of_work_units)
+            #     / float(chunk_size))*100.) >= frac_done):
+            #    print("Progress at {:.0f} %".format(frac_done))
+            #    frac_done += 3.
+            #frac_done = 100.*1.0/((1.0/float(counter)) * float(number_of_work_units) \
+            #/ float(chunk_size))
+            frac_done = 100.*float(counter)*float(chunk_size)/float(number_of_work_units)
+            print("Progress at {:.0f} %".format(frac_done))
             # Wait for someone to say they want some work.
             if (debug): print(pre, "Waiting for message asking for work.")
             recv_buff, source, tag = wait_for_message(recv_buff, status,
@@ -230,7 +233,7 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
                 if (debug): print(pre, "Getting data chunk.")
                 data_chunk, new_index = \
                     get_chunk(all_data, current_index, chunk_size)
-            
+                counter += 1
             # Who did we recieve from, and are they ready for work?
             if (recv_buff == send_me_work and not_done):
                 # Tell this processor we are about to send some
@@ -252,7 +255,7 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
             if (current_index > last_data_index):
                 not_done = False
 
-            counter += 1
+            #counter += 1
 
             if (debug): print("Counter = ", counter)
 
