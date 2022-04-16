@@ -134,14 +134,6 @@ def wait_for_message(recv_buff, status, comm, debug=False):
 
     return recv_buff, source, tag
 
-#def ask_for_work(msg, destination, comm, tag=0):
-    # Send message to root proc
-    # that labels this worker proc
-    # as needing something to do.
-#    comm.Send([msg, 1, MPI.INT], destination, tag=tag)
-
-#    return
-
 def get_chunk(all_data, current_index, chunk_size):
     """
     Gather subset of total work to be
