@@ -41,9 +41,6 @@ def gather_files(generic_file_name, file_dir, suffix='',
         print('start=', start)
         print('end=', end)
         print(files)
-
-    # FIRST: Remove forced plot files from list if it is there.
-    #if ('forced' in files[0]): files = files[1:] - not needed for generic testing SCL 04/12/22
     
     if (start==None):
         start = 0
@@ -62,11 +59,6 @@ def gather_files(generic_file_name, file_dir, suffix='',
         end = end[0].astype(int)+1
         
     files = files[start:end]
-    
-    #if (debug):
-        #print('start=', start)
-        #print('end=', end)
-        #print(files)
 
     return files, start, end
 
@@ -79,8 +71,8 @@ def initialize_mpi(debug=False):
     debug -- Switch on some print statements.
 
     Returns:
-    rank -- Processor rank
-    size -- Number of total processors
+    rank -- Processor rank.
+    size -- Number of total processors.
     comm -- The communicator for MPI.
     """
     
@@ -95,19 +87,43 @@ def initialize_mpi(debug=False):
     return rank, size, comm
 
 def send_data(data_chunk, destination, comm, tag=0):
-    # Here we don't know what type of object
-    # the work is, so we use the generic send.
+    """
+    Sends data from current proc to
+    destination proc.
+    
+    Arguments:
+    data_chunk  -- Data to be sent.
+    destination -- Receiving processor id
+    comm        -- MPI.COMM_WORLD object
+    tag         -- Data label (used as current 
+                   index in these routines)
+    
+    """
     comm.send(data_chunk, dest=destination, tag=tag)
 
     return
 
 def wait_for_message(recv_buff, status, comm, debug=False):
-    # Wait for a request for
-    # the next instruction.
-    # Generally the root is waiting
-    # for a request for more work
-    # from a worker.
-
+    """
+    Establish a buffer to
+    receive waiting for a request
+    for the next instruction.
+    
+    Arguments:
+    recv_buff -- Empty receive array.
+    status    -- MPI.status() object.
+    comm      -- MPI.COMM_WORLD object.
+    debug     -- Switch on debugging print 
+                 statements.
+    
+    Returns:
+    recv_buff -- MPI receive buffer.
+    source    -- expected source of incoming 
+                 message (set to ANY proc).
+    tag       -- expected tag of message 
+                 (set to ANY tag).
+    
+    """
     if (debug): print("Root in wait_for_message")
     comm.Recv(recv_buff, source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
     source = status.Get_source()
@@ -118,27 +134,53 @@ def wait_for_message(recv_buff, status, comm, debug=False):
 
     return recv_buff, source, tag
 
-def ask_for_work(msg, destination, comm, tag=0):
+#def ask_for_work(msg, destination, comm, tag=0):
     # Send message to root proc
     # that labels this worker proc
     # as needing something to do.
-    comm.Send([msg, 1, MPI.INT], destination, tag=tag)
+#    comm.Send([msg, 1, MPI.INT], destination, tag=tag)
 
-    return
+#    return
 
 def get_chunk(all_data, current_index, chunk_size):
-    # For root proc to gather up some new work
-    # to then send to a worker proc.
+    """
+    Gather subset of total work to be
+    sent to a worker processor.
+
+    Arguments:
+    all_data      -- Total input data to 
+                     parallelized function.
+    current_index -- Current index of 
+                     input data.
+    chunk_size    -- Amount of data to be 
+                     delived to each proc.
+
+    Returns:
+    chunk         -- Subset of input data 
+                     to be worked on.
+    new_index     -- first index of the next
+                     chunk-to-be.
+    
+    
+    """
     ci = current_index
-    pi = min(chunk_size, len(all_data[ci:]))
-    chunk = all_data[ci:ci+pi]
-    new_index = ci+pi
+    ni = min(chunk_size, len(all_data[ci:])) # next index
+    chunk = all_data[ci:ci+ni]
+    new_index = ci+ni
     return chunk, new_index
 
 def needs_current_index_arg(function):
-    # Gets kwargs from the function we
-    # want to parallelize.
-    #
+    """
+    Gets keyword argument (kwarg)
+    current_index from the function 
+    we want to parallelize.
+
+    Arguments:
+    function -- Parallelized function.
+    
+    Returns:
+    current_index function arg.
+    """
     # See https://stackoverflow.com/questions/196960/
     #    can-you-list-the-keyword-arguments-a-function-receives 
     args, varargs, varkw, defaults = inspect.getargspec(function)
@@ -167,31 +209,41 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
     is a dictionary of {'kw':'arg'} pairs
     that is unrolled to kw=arg in the
     function call.
+
+    Arguments:
+    function   -- Function to be parallelized.
+    args       -- List of arguments in function.
+    kwargs     -- Dictionary of kwargs in function.
+    all_data   -- Data that is to be distributed.
+    chunk_size -- Amount of data to be sent to
+                  each processor.
+    rank       -- Processor identification.
+    size       -- Number of processors in use.
+    comm       -- MPI.COMM_WORLD object.
+    root       -- root (supervisor) proc id.
+    debug      -- turn print statements.
     """
 
     pre = "Proc", rank
 
     if (debug): print(pre, "Entering perform_task_in_parallel.")
     
-    # Keep a status object around for async comms
+    # Keep a status object around for async comms.
     status = MPI.Status()
 
-    # Note sending and recieving numpy
-    # arrays is faster than the object
-    # method with mpi4py.
     send_me_work = np.array([999], dtype=int)
     everyone_all_done = np.array([100], dtype=int)
     recv_buff  = np.zeros(1, dtype=int)
     work_tag = 999
     done_tag = 100
     
-    # For keeping track of who's
-    # currently doing what, we use an integer
-    # array called procs_status.
     idle    = 200
     working = 999
     done    = 100
-    # Everyone starts idle.
+    
+    # Using integer array to track which
+    # procs are working, idle, or done.
+    # Worker processors start idle.
     procs_status = np.zeros(size-1)
     procs_status[:] = idle
 
@@ -208,20 +260,13 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
         last_data_index = len(all_data)-1
         procs_status[:] = working
 
-    if (rank == root): # I'm the supervisor
+    if (rank == root): # Instructions for supervisor processor.
         # Check to see if any procs are still active.
         while (np.array(procs_status != done).any()):
-            
-            # Progress tracker (at least on the root processor).
-            #if ( int((float(counter) 
-            #     / float(number_of_work_units)
-            #     / float(chunk_size))*100.) >= frac_done):
-            #    print("Progress at {:.0f} %".format(frac_done))
-            #    frac_done += 3.
-            #frac_done = 100.*1.0/((1.0/float(counter)) * float(number_of_work_units) \
-            #/ float(chunk_size))
+            # Progress tracker from supervisor perspective.
             frac_done = 100.*float(counter)*float(chunk_size)/float(number_of_work_units)
             print("Progress at {:.0f} %".format(frac_done))
+            
             # Wait for someone to say they want some work.
             if (debug): print(pre, "Waiting for message asking for work.")
             recv_buff, source, tag = wait_for_message(recv_buff, status,
@@ -229,7 +274,7 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
             if (debug): print(pre, "recieved", recv_buff, "from", source)
             
             if (not_done):
-                # Get a chunk of data
+                # Get a chunk of data.
                 if (debug): print(pre, "Getting data chunk.")
                 data_chunk, new_index = \
                     get_chunk(all_data, current_index, chunk_size)
@@ -240,7 +285,7 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
                 # work.
                 comm.Send([send_me_work, 1, MPI.INT],
                            dest=source, tag=current_index)
-                # Send the work
+                # Send the work.
                 if (debug): print(pre, "Sending", source, "work =", data_chunk)
                 send_data(data_chunk, source, comm, tag=current_index)
                 procs_status[source-1] = working
@@ -255,11 +300,9 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
             if (current_index > last_data_index):
                 not_done = False
 
-            #counter += 1
-
             if (debug): print("Counter = ", counter)
 
-    else: # I'm a worker bee.
+    else: # Instructions for worker processor.
 
         while not_done:
 
@@ -321,16 +364,19 @@ def mpi_reduce_np_array_in_place(array, comm,
                                  debug=False, pre=None):
 
     """
-    Here I mimic the MPI_reduce operation
-    in place with an array.
+    Mimics the MPI_reduce operation but with
+    a numpy array.
 
-    Keyword arguments:
-    array -- The data which should be reduced in place.
-    comm  -- MPI communicator.
-    root  -- Where to reduce to. Default is 0
-    oper  -- The reduction operation. Default is MPI.SUM
+    Arguments:
+    array -- Array to be reduced in place.
+    comm  -- MPI.COMM_WORLD object.
+    root  -- Processor to reduce to. 
+             Default is 0 (supervisor).
+    oper  -- The reduction operation. 
+             Default is MPI.SUM
+
     Returns:
-    array -- The now reduced array.
+    array -- Reduced array.
     """
 
     recv_array = np.zeros_like(array)
@@ -342,22 +388,26 @@ def mpi_reduce_np_array_in_place(array, comm,
     del(recv_array)
     return array
 
-def mpi_gather_dict_to_root(mydict, comm, root=0):
+def mpi_reduce_dict_to_root(mydict, comm, root=0):
     
-    """ For a given dictionary that was created on
-        each processor separately during an MPI
-        task, this function gathers all the
-        dictionaries on the root process
-        under the same name.
+    """ 
+    For a given dictionary that was created on
+    each processor separately during an MPI
+    task, this function gathers all the
+    dictionaries on the root process
+    under the same name. 
+
+    This mimics the MPI_reduce operation.
         
-        Keyword arguments
-        mydict -- the dictionary you want to gather
-        comm   -- the communicator from MPI
-        root   -- location to gather mydict to. Default is 0.
+    Arguments:
+    mydict -- Dictionary you want to reduce.
+    comm   -- MPI.COMM_WORLD object.
+    root   -- Location to reduce mydict to. 
+              Default is 0 (supervisor).
         
-        Returns
-        mydict -- the concatenated dictionary from
-                  all processes.
+    Returns:
+     mydict -- the concatenated dictionary from
+               all processes.
     """
     
     rank = comm.Get_rank()
