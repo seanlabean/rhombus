@@ -128,5 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Generic text files
+# Example files
 simple_example/files/
+examples/read-write-parallel/files/
