@@ -19,9 +19,9 @@ Ensure you have a properly configured and installed version of OpenMPI with your
 To run the test problem:
 1. `cd` into the `/examples/read_write_parallel` directory.
 2. do `python gen_empty_files.py` this will create a sub-directory /files within /read_write_parallel and will populate the directory with 10 blank text files of the form file_X.txt where X runs from 0 to 9. The number of test files created can be changed by editing gen_empty_files.py
-3. do `mpiexec -n {num_procs} python test_script.py` while replacing num_procs with the number of processors you wish to parallelize the task across.
+3. do `mpiexec -n {num_procs} python read_write_parallel.py` while replacing num_procs with the number of processors you wish to parallelize the task across.
 
-The output will reveal the communication between the supervisor processor and the worker processors: transerfing "to-do" data around, sending completed messages back, etc. If you wish, you can edit the chunk size within `test_script.py` to see how the total work is broken up and how the individual processers handle differt sizes of data.
+The output will reveal the communication between the supervisor processor and the worker processors: transerfing "to-do" data around, sending completed messages back, etc. If you wish, you can edit the chunk size within `read_write_parallel.py` to see how the total work is broken up and how the individual processers handle differt sizes of data.
 
 This particular command line call will only parallelize across a single node of any number of processors. If multiple nodes are needed, you will need to provide mpiexec with a hostfile.
 

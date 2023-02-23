@@ -14,12 +14,13 @@ def read_write_file(input_files, proc_num):
     return
 
 root=0
-rank, size, comm = initialize_mpi()
+rank, size, comm = initialize_mpi(debug=False)
 
 file_dir = './files/'
 generic_file_name = 'file'
-file_names, start, end = gather_files(generic_file_name, file_dir,
-                                      suffix='.txt', start=None, end=None, debug=False)
+file_names, start, end = gather_files(generic_file_name, file_dir, rank,
+                                      suffix='.txt', start=None, end=None,
+                                      debug=False)
 
 args = [rank]
 kwargs={}

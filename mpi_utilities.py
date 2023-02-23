@@ -6,7 +6,7 @@ from mpi4py import MPI
 # Note MPI_Init is called on mpi4py import.
 # MPI_Finalize is called on script end.
 
-def gather_files(generic_file_name, file_dir, suffix='',
+def gather_files(generic_file_name, file_dir, rank, suffix='',
                  start=None, end=None, debug=False):
 
     """
@@ -35,12 +35,16 @@ def gather_files(generic_file_name, file_dir, suffix='',
     files = glob(joined_file_name) # Get the files.
     files.sort() # Sort them!
     if (debug):
-        print(generic_file_name)
-        print(file_dir)
-        print(joined_file_name)
-        print('start=', start)
-        print('end=', end)
-        print(files)
+        if (rank==0):
+            print("== Root processor (Rank 0) received files ==")
+            print(generic_file_name)
+            print(file_dir)
+            print(joined_file_name)
+            print('start=', start)
+            print('end=', end)
+            print(files)
+        else:
+            print("Worker processor (Rank {}) received files".format(rank))
     
     if (start==None):
         start = 0
@@ -81,8 +85,11 @@ def initialize_mpi(debug=False):
     size = comm.Get_size()
     rank = comm.Get_rank()
     
-    if (debug): print("Size =", size)
-    if (debug): print("Rank =", rank)
+    if (debug):
+        if (rank == 0):
+            print("Number of processors (Size); Processor IDs (Rank)")
+            print("Size =", size)
+            print("Ranks = ", np.arange(0,size))
 
     return rank, size, comm
 
