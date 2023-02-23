@@ -14,13 +14,13 @@ def read_write_file(input_files, proc_num):
     return
 
 root=0
-rank, size, comm = initialize_mpi(debug=True)
+rank, size, comm = initialize_mpi(debug=False)
 
 file_dir = './files/'
 generic_file_name = 'file'
 file_names, start, end = gather_files(generic_file_name, file_dir, rank,
                                       suffix='.txt', start=None, end=None,
-                                      debug=True)
+                                      debug=False)
 
 args = [rank]
 kwargs={}
@@ -29,4 +29,4 @@ chunk_size=1
 comm.Barrier()
 perform_task_in_parallel(read_write_file, args, kwargs,
                          file_names, chunk_size, rank, size, comm,
-                         root=0, debug=True)
+                         root=0, debug=False)
