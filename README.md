@@ -15,6 +15,12 @@ In addition to whichever packages you use for your process you wish to paralleli
 
 Ensure you have a properly configured and installed version of OpenMPI with your PATH and PYTHONPATH correctly pointed to the install directory before attempting to `pip install mpi4py`.
 
+## Running "Hello World"
+1. `cd` into `/examples/hello_world`
+2. do `mpiexec python hello_world.py`
+
+This will request all available processors to print "Hello, World!" to the screen along with their processor rank. This is a good way to determine how many cores your machine has and whether mpi4py/OpenMPI is installed correctly.
+
 ## Running the test problem
 To run the test problem:
 1. `cd` into the `/examples/read_write_parallel` directory.
