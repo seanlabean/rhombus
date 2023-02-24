@@ -4,7 +4,7 @@ A generalizable python-mpi utility for task-based parallel programming.
 
 This implementation of task-based parallel programming consists of one root processor, and any number of worker processors. The root breaks a portion of a job into bite sized chunks (like a single file) which are then sent to the workers. While the workers... well... work, the root sits and waits. When a working finishes with its allotted chunk, it pings the root node and asks for another chunk, which the root node then provides. Therefore no worker is ever left without something to do.
 
-This is fundamentally different and more efficient than data-based paralllel processing in which an **entire** job is split into n equally sized chunks (where n is the number of processors) and sent to the worker processors. In this method, when a worker is done processing, it does not need to ask the root node for any more work (since everything has already been distributed to the workers). Therefore, although the task is being completed in parallel, there is a chance that workers will be left idle while they wait for other workers to finish.
+This is fundamentally different and more efficient than data-based parallel processing in which an **entire** job is split into n equally sized chunks (where n is the number of processors) and sent to the worker processors. In this method, when a worker is done processing, it does not need to ask the root node for any more work (since everything has already been distributed to the workers). Therefore, although the task is being completed in parallel, there is a chance that workers will be left idle while they wait for other workers to finish.
 
 ## Necessary packages
 In addition to whichever packages you use for your process you wish to parallelize, you will need to ensure you have working installs of the following:
@@ -27,7 +27,7 @@ To run the test problem:
 2. do `python gen_empty_files.py` this will create a sub-directory /files within /read_write_parallel and will populate the directory with 10 blank text files of the form file_X.txt where X runs from 0 to 9. The number of test files created can be changed by editing gen_empty_files.py
 3. do `mpiexec -n {num_procs} python read_write_parallel.py` while replacing num_procs with the number of processors you wish to parallelize the task across.
 
-The output will reveal the communication between the supervisor processor and the worker processors: transerfing "to-do" data around, sending completed messages back, etc. If you wish, you can edit the chunk size within `read_write_parallel.py` to see how the total work is broken up and how the individual processers handle differt sizes of data.
+The output will reveal the communication between the supervisor processor and the worker processors: transferring "to-do" data around, sending completed messages back, etc. If you wish, you can edit the chunk size within `read_write_parallel.py` to see how the total work is broken up and how the individual processers handle different sizes of data.
 
 This particular command line call will only parallelize across a single node of any number of processors. If multiple nodes are needed, you will need to provide mpiexec with a hostfile.
 
