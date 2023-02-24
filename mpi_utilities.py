@@ -333,7 +333,7 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
                 if (debug): print("kwargs=", kwargs)
                 function(local_data, *args, **kwargs)
             else:
-                # Otherwise its a simple one count array message. Recieve that.
+                # Otherwise its a simple one count array message. Receive that.
                 if (debug): print(pre, "Got non-data message from root.")
                 # Not used now that we explicitly communicate a message
                 # about work status before we send the work chunk.
@@ -352,7 +352,7 @@ def perform_task_in_parallel(function, args, kwargs, all_data,
 # They work to gather information spread across multiple processors
 # and 'reduce' the data down to the root node.
 #
-# Imagine if we had a mosaic of sky picutres in which several procs
+# Imagine if we had a mosaic of sky pictures in which several procs
 # count the number of galaxies in the pics given to them. If we want
 # the total number of galaxies in the entire mosaic, we'd let the procs
 # do their job then reduce their individual counts to a single value
