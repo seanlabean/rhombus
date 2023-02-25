@@ -11,7 +11,7 @@ comm.Barrier()
 
 # this array lives on each processor
 data = np.zeros(5)
-for i in range(comm.rank, len(data), comm.size):
+for i in range(rank, len(data), size):
     # set data in each array that is different for each processor
     data[i] = i
 

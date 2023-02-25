@@ -36,6 +36,14 @@ The output will reveal the communication between the supervisor processor and th
 
 Each processor will build a (5,) numpy array with indicie [I] == I, where I is the unique processor rank (e.g. processor 2 will make [0 0 2 0 0]). Then, the root processor will collect all of the arrays and perform the MPI.SUM operation on them. The result (if using 4 processors) will be [0 1 2 3 4]. The MPI.SUM operatoin can be replaced with any other MPI op code.
 
+### Reducing dictionary in-place
+1. `cd` into `/examples`
+2. do `mpiexec python reduce_dict.py`
+
+Each processor is given an empty dictionary and will insert a single key/value pair of str(rank):rank*100 (e.g. processor 2 dictionary  is {'2':200}). The root processor then gathers all dictionaries from all processors and updates its own dictionary with the unique pairs.
+
+---
+
 The mpiexec calls used in the examples will only parallelize across a single node of any number of processors. If multiple nodes are needed, you will need to provide mpiexec with a hostfile.
 
 ## How to parallelize your specific task
