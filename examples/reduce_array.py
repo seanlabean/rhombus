@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 from mpi4py import MPI
-sys.path.append('../../')
+sys.path.append('../')
 from mpi_utilities import *
 
 rank, size, comm = initialize_mpi(debug=False)

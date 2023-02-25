@@ -15,21 +15,28 @@ In addition to whichever packages you use for your process you wish to paralleli
 
 Ensure you have a properly configured and installed version of OpenMPI with your PATH and PYTHONPATH correctly pointed to the install directory before attempting to `pip install mpi4py`.
 
-## Running "Hello World"
-1. `cd` into `/examples/hello_world`
+## Examples using MPI
+### "Hello World"
+1. `cd` into `/examples`
 2. do `mpiexec python hello_world.py`
 
 This will request all available processors to print "Hello, World!" to the screen along with their processor rank. This is a good way to determine how many cores your machine has and whether mpi4py/OpenMPI is installed correctly.
 
-## Running the test problem
+### Read/write files
 To run the test problem:
-1. `cd` into the `/examples/read_write_parallel` directory.
+1. `cd` into the `/examples` directory.
 2. do `python gen_empty_files.py` this will create a sub-directory /files within /read_write_parallel and will populate the directory with 10 blank text files of the form file_X.txt where X runs from 0 to 9. The number of test files created can be changed by editing gen_empty_files.py
 3. do `mpiexec -n {num_procs} python read_write_parallel.py` while replacing num_procs with the number of processors you wish to parallelize the task across.
 
 The output will reveal the communication between the supervisor processor and the worker processors: transferring "to-do" data around, sending completed messages back, etc. If you wish, you can edit the chunk size within `read_write_parallel.py` to see how the total work is broken up and how the individual processers handle different sizes of data.
 
-This particular command line call will only parallelize across a single node of any number of processors. If multiple nodes are needed, you will need to provide mpiexec with a hostfile.
+### Reducing array in-place
+1. `cd` into `/examples`
+2. do `mpiexec python reduce_array.py`
+
+Each processor will build a (5,) numpy array with indicie [I] == I, where I is the unique processor rank (e.g. processor 2 will make [0 0 2 0 0]). Then, the root processor will collect all of the arrays and perform the MPI.SUM operation on them. The result (if using 4 processors) will be [0 1 2 3 4]. The MPI.SUM operatoin can be replaced with any other MPI op code.
+
+The mpiexec calls used in the examples will only parallelize across a single node of any number of processors. If multiple nodes are needed, you will need to provide mpiexec with a hostfile.
 
 ## How to parallelize your specific task
 Upon investigating the perform_task_in_parallel() funciton within `mpi_utilities.py` you will notice that the "task" can be any function, with any number of input args and kwargs. If your task can be condensed into a single function with a discrete amount of input work, it can be parallelized with this routine. To utilize, call ```perform_task_in_parallel(your_func, [args], {kwargs}, input_data, chunk_size, rank, size, comm, root, debug=False)```

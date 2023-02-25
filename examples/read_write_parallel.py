@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../../')
+sys.path.append('../')
 from mpi_utilities import *
 from time import time
 
