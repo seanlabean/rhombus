@@ -1,4 +1,4 @@
-# PythonOpenMPI
+# rhombus
 
 A generalizable python-mpi utility for task-based parallel programming.
 
